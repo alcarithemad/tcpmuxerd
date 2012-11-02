@@ -1,7 +1,5 @@
-TCPMUX:
-===
-A Practical Defense Against TCP Port Number Exhaustion
----
+## TCPMUX:
+### A Practical Defense Against TCP Port Number Exhaustion
 
 When TCP was originally being devised, the Internet was small, and its uses (and therefore protocols) were few. It seemed like 65,536 ports would be enough to last forever. However, as time went on, and we assigned more and more of the TCP port number space, people began to realize that we needed a way to limit the number of ports involved in running a single daemon. While several stopgap measures have been proposed and implementated, only one true solution has been found: RFC 1078.
 When TCP was new, it was not uncommon for protocols to use huge numbers of ports. Early adopters of SSL assigned a second port for SSL connections; examples of this include HTTP (80, 443), POP3 (110, 995), IMAP (143, 993), and SMTP (25, 465). An even more outrageous example, FTP, uses a control port (21), plus a random ephemeral port per active file transfer. On a typical modern server, capable of serving thousands of files simultaneously, that ties up thousands of ports for a single service.
@@ -10,10 +8,8 @@ RFC 1078, on the other hand, specifies a real, viable, solution. Under RFC 1078,
 
 
 
-BUILDING
-===
-Prerequisites:
----
+### BUILDING
+#### Prerequisites:
 Go 1
 
 run `go build`
