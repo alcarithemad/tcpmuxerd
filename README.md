@@ -18,6 +18,8 @@ run `go build`
 ### Configuration
 
 The tcpmux.conf file defines what ports and programs are available over the TCPMUX protocol. It has a simple structure of tab-delimited fields (this format  is not yet stable, but probably won't change much more).
+````
 <service name>	#	<hostname (optional, defaults to localhost>	<port>
 <service name>	!	<path to executable>	<args, optional>
+````
 Examples can be found in tcpmux.conf
