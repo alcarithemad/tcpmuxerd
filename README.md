@@ -9,11 +9,15 @@ Some protocol designers have replaced the need for bi-port protocols by designin
 
 RFC 1078, on the other hand, specifies a real, viable, solution. Under RFC 1078, also known as TCPMUX, we only need one port number: 1, and through it we may connect to any service, even if we do not know its port number. By replacing port numbers with service names, we expand the number of services that can be run on a single server by an exponential amount. With TCPMUX, there is no danger of TCP port space exhaustion, and port-based firewalls are completely unnecessary!
 
-
-
 ### BUILDING
 #### Prerequisites:
 Go 1
 
 run `go build`
 
+### Configuration
+
+The tcpmux.conf file defines what ports and programs are available over the TCPMUX protocol. It has a simple structure of tab-delimited fields (this format  is not yet stable, but probably won't change much more).
+<service name>	#	<hostname (optional, defaults to localhost>	<port>
+<service name>	!	<path to executable>	<args, optional>
+Examples can be found in tcpmux.conf

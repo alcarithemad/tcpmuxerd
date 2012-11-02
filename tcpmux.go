@@ -12,8 +12,15 @@ import (
 
 type Service struct {
 	Type	bool
+	Host	string
 	Port	int
 	Path	string
+	Args	[]string
+}
+
+func srv_not_available(s *net.TCPConn) {
+	s.Write([]byte("- service not available at this time\n"))
+	s.Close()
 }
 
 func (srv *Service) Run(s *net.TCPConn) {
@@ -21,33 +28,30 @@ func (srv *Service) Run(s *net.TCPConn) {
 		cmd := exec.Command(srv.Path)
 		stdin, err := cmd.StdinPipe()
 		if (err != nil) {
-                        s.Write([]byte("- service not available at this time\n"))
-                        s.Close()
+			srv_not_available(s)
                         return
                 }
 		stdout, err := cmd.StdoutPipe()
 		if (err != nil) {
-                        s.Write([]byte("- service not available at this time\n"))
-                        s.Close()
+			srv_not_available(s)
                         return
                 }
 		err = cmd.Start()
 		if (err != nil) {
-                        s.Write([]byte("- service not available at this time\n"))
-                        s.Close()
+			srv_not_available(s)
                         return
                 }
-		s.Write([]byte("+ connecting\n"))
-		io.Copy(s, stdout)
-		io.Copy(stdin, s)
+		s.Write([]byte("+ connected\n"))
+		go io.Copy(s, stdout)
+		go io.Copy(stdin, s)
 	} else {
-		d, err := net.DialTCP("tcp", nil, &net.TCPAddr{net.IPv4(127,0,0,1), srv.Port})
+		d, err := net.Dial("tcp", fmt.Sprintf("%s:%d",srv.Host, srv.Port))
 		if (err != nil) {
-			s.Write([]byte("- service not available at this time\n"))
-			s.Close()
-			return
-		}
-		s.Write([]byte("+ connecting\n"))
+			fmt.Println(err)
+			srv_not_available(s)
+                        return
+                }
+		s.Write([]byte("+ connected\n"))
 		go io.Copy(s, d)
 		go io.Copy(d, s)
 	}
@@ -64,16 +68,31 @@ func readconf() *map[string]Service {
 	conf := make(map[string]Service, 1)
 	lines := strings.Split(string(rawconf), "\n")
 	for _, line := range lines {
-		if (len(line) < 3) {continue}
-		l := strings.Split(line, " ")
+		if (len(line) < 5) {continue}
+		l := strings.Split(line, "\t")
 		srv_entry := Service{}
 		if (l[1] == "!") {
 			srv_entry.Type = true
 			srv_entry.Path = l[2]
-		} else {
-			port, err := strconv.ParseInt(l[2], 10, 16)
+			if (len(l) == 4) {
+				srv_entry.Args = strings.Split(l[3], " ")
+			} else {
+				srv_entry.Args = make([]string, 0)
+			}
+		} else if (l[1] == "#") {
+			var x int
+			if (len(l) == 3) {
+				srv_entry.Host = "localhost"
+				x = 2
+			} else if (len(l) == 4) {
+				srv_entry.Host = l[2]
+				x = 3
+			}
+			port, err := strconv.ParseInt(l[x], 10, 16)
 			if (err != nil) { panic(err) } // TODO: print a better error
 			srv_entry.Port = int(port)
+		} else {
+			fmt.Println("Bad tcpmux.conf, exiting...")
 		}
 		conf[strings.ToUpper(l[0])] = srv_entry
 	}
